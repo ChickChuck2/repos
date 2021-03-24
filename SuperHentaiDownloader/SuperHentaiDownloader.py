@@ -1,5 +1,5 @@
 import sys
-from PyQt5.QtCore import QThread
+from PyQt5.QtCore import QObject, QThread
 from PyQt5.QtWidgets import *
 from PyQt5 import QtGui
 import random
@@ -88,15 +88,16 @@ class Janela(QMainWindow):
         for i in range(getTextValue):
             IDran = random.randrange(1, 111767)
             link = "ID: {}".format(IDran)
-
+            
+            #JPEG/JPG
             linkJPEG = "https://figure.superhentais.com/img/figure/{}{}.download".format(IDran, formatJPEG)
             URLdirJPEG = requests.get(linkJPEG)
             verifyJPEG = self.get_content_type(linkJPEG)
-
+            #PNG
             linkPNG = "https://figure.superhentais.com/img/figure/{}{}.download".format(IDran, formatPNG)
             URLdirPNG = requests.get(linkPNG)
             verifyPNG = self.get_content_type(linkPNG)
-
+            #GIF
             linkGIF = "https://figure.superhentais.com/img/figure/{}{}.download".format(IDran, formatGIF)
             URLdirGIF = requests.get(linkGIF)
             verifyGIF = self.get_content_type(linkGIF)
@@ -107,25 +108,20 @@ class Janela(QMainWindow):
             print(verifyJPEG)
             #Se a imagem for JPEG
             if verifyJPEG == "image/jpeg":
-                
                 ImageJPEGname = "Super-Hentai-Image-{}{}".format(IDran, formatJPEG)
                 file = open(f"{imageDir}{ImageJPEGname}", "wb")
                 file.write(URLdirJPEG.content)
                 file.close()
-            
             #Verificar se é PNG
             else:
                 verifyPNG
                 print(verifyPNG)
-
                 #Se a imagem for PNG
                 if verifyPNG == "image/png":
-                    print(verifyPNG)
                     ImagePNGname = "Super-Hentai-Image-{}{}".format(IDran, formatPNG)
                     file = open(f"{imageDir}{ImagePNGname}", "wb")
                     file.write(URLdirPNG.content)
                     file.close()
-                
                 #Verificar se é gif
                 else:
                     verifyGIF
@@ -137,9 +133,9 @@ class Janela(QMainWindow):
                         file.write(URLdirGIF.content)
                         file.close()
                     else:
-                        print("Não foi possivel verificar tipo do arquivo")
+                        print("Não foi possivel verificar tipo do arquivo. Arquivo e outro formato desconhecido, ou a ID {} Não existe.".format(IDran))
             print("=-"*40)
-            
+
 # cor da janela em (CSS)
 df = """
     Janela {
