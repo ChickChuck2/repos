@@ -1,0 +1,11 @@
+Janela {
+    background-color: black;
+}
+QPushButton {
+    background: rgba(2, 3, 3, 0.5);
+
+}
+QLineEdit {
+    background-color: black;
+    color: red;
+}   
