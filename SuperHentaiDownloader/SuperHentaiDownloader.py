@@ -1,24 +1,27 @@
 import sys
-from PyQt5.QtCore import QObject, QThread
-from PyQt5.QtWidgets import *
+from PyQt5.QtWidgets import QMainWindow, QLabel, QTextEdit, QPushButton, QApplication
 from PyQt5 import QtGui
 import random
 import time
 import requests
 import discord_rpc
 import os
+from notifypy import Notify
 
 default = 'style.css'
 imageDir = "Hentai-Image/"
 gifDir = "Hentai-Gif/"
 
 icon = "Sources/icon.png"
+
 width = 800
 height = 600
 
 formatJPEG = ".jpeg"
 formatPNG = ".png"
 formatGIF = ".gif"
+
+completenotificationAudio = "Sources\CompleteNotificationAudio.wav"
 
 try:
     os.mkdir(imageDir)
@@ -86,6 +89,15 @@ class Janela(QMainWindow):
     def baixar(self):
         self.getTextString = self.textbox.toPlainText()
         getTextValue = int(self.getTextString)
+
+        notificationComplete = Notify(
+            default_notification_application_name="HentaiDownloader",
+            default_notification_title="Aviso",
+            default_notification_message="Avisaremos Por aqui quando baixarmos tudo :D (QUANDO TUDO ACABAR IRÁ SAIR UM GEMIDINHO )",
+            default_notification_icon=icon
+            )
+        notificationComplete.send()
+
         for i in range(getTextValue):
             IDran = random.randrange(1, 111767)
             link = "ID: {}".format(IDran)
@@ -152,6 +164,15 @@ class Janela(QMainWindow):
                         print("Não foi possivel verificar tipo do arquivo. Arquivo e outro formato desconhecido, ou a ID {} Não existe.".format(IDran))
             print("=-"*40)
             
+        #Notificação de downloa completo
+        notificationComplete = Notify(
+            default_notification_application_name="HentaiDownloader",
+            default_notification_title="Aviso Download",
+            default_notification_message="Hentais Baixados {}".format(i + 1),
+            default_notification_icon=icon,
+            default_notification_audio=completenotificationAudio
+            )
+        notificationComplete.send()
 
 # cor da janela em (CSS)
 df = """
