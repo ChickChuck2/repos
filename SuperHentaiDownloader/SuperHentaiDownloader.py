@@ -12,7 +12,7 @@ default = 'style.css'
 imageDir = "Hentai-Image/"
 gifDir = "Hentai-Gif/"
 
-icon = "icon.png"
+icon = "Sources/icon.png"
 width = 800
 height = 600
 
@@ -45,10 +45,10 @@ callbacks = {
     'disconnected': disconnectedCallback,
     'error': errorCallback,
 }
-discord_rpc.initialize('816485448666578984', callbacks=callbacks, log=False)
-#Discord presence
+
 start = time.time()
 i = 0
+
 class Janela(QMainWindow):
     def __init__(self):
         super(Janela, self).__init__()
@@ -56,7 +56,7 @@ class Janela(QMainWindow):
         self.setWindowTitle("Super Hentai Downloader")
         self.setWindowIcon(QtGui.QIcon(icon))
 
-        logo = QtGui.QPixmap("imageSize.webp")
+        logo = QtGui.QPixmap("Sources/imageSize.webp")
 
         self.label = QLabel(self)
         self.label.setPixmap(logo)
@@ -73,8 +73,9 @@ class Janela(QMainWindow):
         self.accept.move(300,530)
         self.accept.clicked.connect(self.baixar)
 
-        
         # >>Style<<
+        self.accept.setStyleSheet(open(default).read())
+        self.textbox.setStyleSheet(open(default).read())
         
         self.show()
     
@@ -88,6 +89,21 @@ class Janela(QMainWindow):
         for i in range(getTextValue):
             IDran = random.randrange(1, 111767)
             link = "ID: {}".format(IDran)
+
+            #Discord init RichPresence
+            discord_rpc.initialize('816485448666578984', callbacks=callbacks, log=False)
+            discord_rpc.update_presence(
+                **{
+                    'details': 'Baixando Hentai ID: {}'.format(IDran),
+                    'state': 'Baixei {} Hentais 😎🤙'.format(i),
+                    'start_timestamp': start,
+                    ''
+                    'large_image_key': 'android-chrome-512x512'
+                }
+            )
+            discord_rpc.update_connection()
+            time.sleep(1)
+            discord_rpc.run_callbacks()
             
             #JPEG/JPG
             linkJPEG = "https://figure.superhentais.com/img/figure/{}{}.download".format(IDran, formatJPEG)
@@ -135,6 +151,7 @@ class Janela(QMainWindow):
                     else:
                         print("Não foi possivel verificar tipo do arquivo. Arquivo e outro formato desconhecido, ou a ID {} Não existe.".format(IDran))
             print("=-"*40)
+            
 
 # cor da janela em (CSS)
 df = """
@@ -149,5 +166,7 @@ if __name__ == "__main__":
     app.setStyleSheet(df)
     janela = Janela()
     janela.show()
+
+    discord_rpc.shutdown()
 
     sys.exit(app.exec_())
