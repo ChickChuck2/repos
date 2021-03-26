@@ -14,3 +14,9 @@ QTextEdit {
     color: red;
 }
 /*background: linear-gradient(65deg, rgba(204, 255, 0, 0.185) 10%, rgba(0, 255, 8, 0.178) 89%);*/
+QLabel {
+    color: red;
+}
+menuBar {
+    color: red;
+}
