@@ -1,5 +1,6 @@
 import sys
 import traceback
+from PyQt5 import QtCore
 from PyQt5.QtWidgets import QAction, QMainWindow, QLabel, QProgressBar, QTextEdit, QPushButton, QApplication, qApp
 from PyQt5 import QtGui
 from PyQt5.QtCore import QObject, QRunnable, QThreadPool, pyqtSignal, pyqtSlot
@@ -100,8 +101,13 @@ class Janela(QMainWindow):
         self.setWindowTitle("Super Hentai Downloader")
         self.setWindowIcon(QtGui.QIcon(icon))
 
-        logo = QtGui.QPixmap("Sources/imageSize.webp")
+        #HENTAI VIEWER
 
+        self.hentaiv = QLabel(self)
+        self.hentaiv.move(150,70)
+        self.hentaiv.resize(600,400)
+
+        logo = QtGui.QPixmap("Sources/imageSize.webp")
         self.label = QLabel(self)
         self.label.setPixmap(logo)
         self.label.move(270,40)
@@ -161,6 +167,12 @@ class Janela(QMainWindow):
         self.notification.setChecked(False)
         defini.addAction(self.notification)
 
+        defini.addSeparator()
+
+        self.imagePreview = QAction('Desativar Visualização de imagem', self, checkable=True)
+        self.imagePreview.setChecked(True)
+        defini.addAction(self.imagePreview)
+
         menubar.setStyleSheet(open(default).read())
 
     #não deletar o self
@@ -170,7 +182,6 @@ class Janela(QMainWindow):
     def pregresso(self, i):
         print("%d%% done" % i)
         
-
     def baixar(self, progress_callback):
         self.getTextString = self.textbox.toPlainText()
         self.getTextValue = int(self.getTextString)
@@ -233,6 +244,12 @@ class Janela(QMainWindow):
                 file.write(URLdirJPEG.content)
                 file.close()
 
+                #Preview Image
+                if self.imagePreview.isChecked() == False:
+                    self.HentaiView = QtGui.QPixmap(f"{imageDir}{ImageJPEGname}")
+                    scaledpreiew = self.HentaiView.scaled(400,400, QtCore.Qt.KeepAspectRatio)
+                    self.hentaiv.setPixmap(scaledpreiew)
+
             #Se a imagem for PNG
             print(verifyPNG)
             if verifyPNG == "image/png":
@@ -240,6 +257,12 @@ class Janela(QMainWindow):
                 file = open(f"{imageDir}{ImagePNGname}", "wb")
                 file.write(URLdirPNG.content)
                 file.close()
+
+                #Preview Image
+                if self.imagePreview.isChecked() == False:
+                    self.HentaiView = QtGui.QPixmap(f"{imageDir}{ImagePNGname}")
+                    scaledpreiew = self.HentaiView.scaled(400,400, QtCore.Qt.KeepAspectRatio)
+                    self.hentaiv.setPixmap(scaledpreiew)
             
             #Verificar se é gif
             print(verifyGIF)
@@ -248,6 +271,12 @@ class Janela(QMainWindow):
                 file = open(f"{gifDir}{ImageGIFname}", "wb")
                 file.write(URLdirGIF.content)
                 file.close()
+                
+                #Preview Image
+                if self.imagePreview.isChecked() == False:
+                    self.HentaiView = QtGui.QPixmap(f"{gifDir}{ImageGIFname}")
+                    scaledpreiew = self.HentaiView.scaled(400,400, QtCore.Qt.KeepAspectRatio)
+                    self.hentaiv.setPixmap(scaledpreiew)
 
             print("=-"*40)
             
