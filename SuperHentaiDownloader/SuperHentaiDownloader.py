@@ -1,7 +1,7 @@
 import sys
 import traceback
 from PyQt5 import QtCore
-from PyQt5.QtWidgets import QAction, QMainWindow, QLabel, QProgressBar, QTextEdit, QPushButton, QApplication, qApp
+from PyQt5.QtWidgets import QAction, QMainWindow, QLabel, QTextEdit, QPushButton, QApplication, qApp
 from PyQt5 import QtGui
 from PyQt5.QtCore import QObject, QRunnable, QThreadPool, pyqtSignal, pyqtSlot
 import random
@@ -101,8 +101,6 @@ class Janela(QMainWindow):
         self.setWindowTitle("Super Hentai Downloader")
         self.setWindowIcon(QtGui.QIcon(icon))
 
-        #HENTAI VIEWER
-
         self.hentaiv = QLabel(self)
         self.hentaiv.move(150,70)
         self.hentaiv.resize(600,400)
@@ -124,7 +122,7 @@ class Janela(QMainWindow):
 
         #labelINFO
         self.baixados = QLabel("Imagens Baixada: ", self)
-        self.baixados.move(40,510)
+        self.baixados.move(50,510)
 
         self.accept = QPushButton("Baixar", self)
         self.accept.move(300,530)
@@ -203,6 +201,7 @@ class Janela(QMainWindow):
             link = "ID: {}".format(IDran)
 
             self.baixados.setText("Imagens Baixadas: %d" % i)
+            self.baixados.resize("40,200")
 
             #Discord init RichPresence
             if self.Discord_rpc.isChecked() == False:
