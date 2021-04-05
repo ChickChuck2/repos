@@ -1,3 +1,5 @@
+from json.decoder import JSONDecodeError, JSONDecoder
+from json.encoder import JSONEncoder
 import sys
 import traceback
 from PyQt5 import QtCore
@@ -6,16 +8,18 @@ from PyQt5 import QtGui
 from PyQt5.QtCore import QObject, QRunnable, QThreadPool, pyqtSignal, pyqtSlot
 import random
 import time
+from loguru import logger
 import requests
 import discord_rpc
 import os
 from notifypy import Notify
+import json
+
+icon = "Sources/icon.png"
 
 default = 'style.css'
 imageDir = "Hentai-Image/"
 gifDir = "Hentai-Gif/"
-
-icon = "Sources/icon.png"
 
 width = 800
 height = 600
@@ -26,31 +30,33 @@ formatGIF = ".gif"
 
 completenotificationAudio = "Sources\CompleteNotificationAudio.wav"
 
+Configs = {}
+Configs['RichPresence'] = []
+Configs['Notification'] = []
+Configs['ImageViewer'] = []
+
 try:
     os.mkdir(imageDir)
     os.mkdir(gifDir)
 except OSError:
-    print ("falha na criação da pasta %s " % imageDir)
-    print ("falha na criação da pasta %s " % gifDir)
+    print ("Pasta %s Já existe" % imageDir)
+    print ("Pasta %s Já existe" % gifDir)
 else:
     print ("Sucesso na criação da pasta %s " % imageDir)
     print ("Sucesso na criação da pasta %s " % gifDir)
 
 def readyCallback(current_user):
-    print('Our user: {}'.format(current_user))
+    print('Seu usuario: {}'.format(current_user))
 def disconnectedCallback(codeno, codemsg):
-    print('Disconnected from Discord rich presence RPC. Code {}: {}'.format(
-        codeno, codemsg
-))
+    print('Desconectado do Discord {}: {}'.format(
+        codeno, codemsg))
 def errorCallback(errno, errmsg):
-    print('An error occurred! Error {}: {}'.format(
-        errno, errmsg
-))
+    print('Um erro com Presença do discord foi ocorrido {}: {}'.format(
+        errno, errmsg))
 callbacks = {
     'ready': readyCallback,
     'disconnected': disconnectedCallback,
-    'error': errorCallback,
-}
+    'error': errorCallback,}
 
 start = time.time()
 
@@ -123,6 +129,7 @@ class Janela(QMainWindow):
         #labelINFO
         self.baixados = QLabel("Imagens Baixada: ", self)
         self.baixados.move(50,510)
+        self.baixados.resize(150,20)
 
         self.accept = QPushButton("Baixar", self)
         self.accept.move(300,530)
@@ -138,7 +145,8 @@ class Janela(QMainWindow):
         self.showUI()
 
         self.threadpool = QThreadPool()
-        print("Multithreading with maximum %d threads" % self.threadpool.maxThreadCount())
+        #print("Multithreading with maximum %d threads" % self.threadpool.maxThreadCount())
+    
     #!@ Funções @!
 
     def showUI(self):
@@ -155,9 +163,9 @@ class Janela(QMainWindow):
 
         defini = menubar.addMenu("Definições")
         
-        self.Discord_rpc = QAction('Desativar Status discord', self, checkable=True)
-        self.Discord_rpc.setChecked(False)
-        defini.addAction(self.Discord_rpc)
+        self.RichPresence = QAction('Desativar Status discord', self, checkable=True)
+        self.RichPresence.setChecked(False)
+        defini.addAction(self.RichPresence)
 
         defini.addSeparator()
 
@@ -171,7 +179,75 @@ class Janela(QMainWindow):
         self.imagePreview.setChecked(True)
         defini.addAction(self.imagePreview)
 
+        self.saveConfigs = QAction("Salvar Configs", self)
+        self.saveConfigs.triggered.connect(self.SalvarConfigs)
+        defini.addAction(self.saveConfigs)
+
         menubar.setStyleSheet(open(default).read())
+
+        #CONFIGURAÇÕES
+        try:
+            self.carregarConfigs()
+        except Exception as e:
+            print(logger.error(str(e)+ "\n" +
+                "Aconteceu um erro, mas não se preocupe, não é grave"))
+
+            print("-="*40)
+            print("Arquivo de configuração não existe")
+            print("")
+            print("Criando Arquivo de configurações")
+
+            with open('Configs.json', 'w') as outfile:
+                json.dump(Configs, outfile, indent=4)
+
+            print("Arquivo de Configurações criado")
+            print("-="*40)
+
+    def carregarConfigs(self):
+        print("-="*40)
+        print("Carregando Configurações..")
+
+        with open('Configs.json') as json_file:
+            data = json.load(json_file)
+
+            for p in data['RichPresence']:
+                if p == "False":
+                    self.RichPresence.setChecked(False)
+                if p == "True":
+                    self.RichPresence.setChecked(True)
+
+            for p in data['Notification']:
+                if p == "False":
+                    self.notification.setChecked(False)
+                if p == "True":
+                    self.notification.setChecked(True)
+            
+            for p in data['ImageViewer']:
+                if p == "False":
+                    self.imagePreview.setChecked(False)
+                if p == "True":
+                    self.imagePreview.setChecked(True)
+            
+        print("Carregado")
+        print("-="*40)
+    
+    def SalvarConfigs(self):
+
+        Configs['Notification'].clear()
+        Configs['RichPresence'].clear()
+        Configs['ImageViewer'].clear()
+        
+        Configs['Notification'].append(
+            f'{self.notification.isChecked()}',)
+
+        Configs['RichPresence'].append(
+            f'{self.RichPresence.isChecked()}',)
+
+        Configs['ImageViewer'].append(
+            f'{self.imagePreview.isChecked()}')
+        
+        with open('Configs.json', 'w') as outfile:
+            json.dump(Configs, outfile, indent=4)
 
     #não deletar o self
     def get_content_type(self, url):
@@ -192,6 +268,7 @@ class Janela(QMainWindow):
                 default_notification_message="Avisaremos Por aqui quando baixarmos tudo :D (QUANDO TUDO ACABAR IRÁ SAIR UM GEMIDINHO )",
                 default_notification_icon=icon
                 )
+
             notificationComplete.send()
 
         for i in range(self.getTextValue):
@@ -201,10 +278,9 @@ class Janela(QMainWindow):
             link = "ID: {}".format(IDran)
 
             self.baixados.setText("Imagens Baixadas: %d" % i)
-            self.baixados.resize("40,200")
 
             #Discord init RichPresence
-            if self.Discord_rpc.isChecked() == False:
+            if self.RichPresence.isChecked() == False:
                 discord_rpc.initialize('816485448666578984', callbacks=callbacks, log=False)
                 discord_rpc.update_presence(
                     **{
@@ -300,6 +376,7 @@ class Janela(QMainWindow):
         worker.signals.progress.connect(self.pregresso)
 
         self.threadpool.start(worker)
+
 # cor da janela em (CSS)
 df = """
     Janela {
