@@ -36,6 +36,7 @@ class MainWindow(QMainWindow):
     def Action(self):
         for i in range(12):
             self.label = QLabel(self)
+            self.label.move(300,i *300)
             self.label.resize(300, 300)
 
             pixmap = QPixmap(f'{ImagePath}Image{i}.jpg')
