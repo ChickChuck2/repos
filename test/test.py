@@ -1,55 +1,37 @@
 import sys
-from PyQt5 import QtCore
-from PyQt5 import QtGui
-from PyQt5 import QtWidgets
-from PyQt5.QtGui import QPixmap
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QApplication, QLabel, QMainWindow, QPushButton, QScrollArea, QVBoxLayout, QWidget
-import time
+from PyQt5.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, 
+                             QApplication, QPushButton)
 
+class MainWindow(QMainWindow): 
+    def __init__(self, x):                                         # x <-- 3
+        super().__init__()
 
-width = 800
-height = 600
+        self.centralwidget = QWidget()
+        self.setCentralWidget(self.centralwidget)
+        self.lay = QVBoxLayout(self.centralwidget)
 
-ImagePath = "Images/"
+        for i in range(x):                                          # <---
+            self.btn = QPushButton('Button {}'.format(i +1), self)            
+            text = self.btn.text()
+            self.btn.clicked.connect(lambda ch, text=text : print("\nclicked--> {}".format(text)))
+            self.lay.addWidget(self.btn)
 
-class MainWindow(QMainWindow):
+        self.numButton = 4
 
-    def __init__(self, *args, **kwargs):
-        super(MainWindow, self).__init__(*args, **kwargs)
-        self.setWindowTitle("Example")
-        self.setGeometry(0,0, width, height)
-        
-        button = QPushButton("Botão caralho", self)
-        button.move(600,0)
-        button.clicked.connect(self.Action)
+        pybutton = QPushButton('Create a button', self)
+        pybutton.clicked.connect(self.clickMethod)
 
-        self.scrollarea = QScrollArea(self)
-        self.scrollarea.move(300,100)
-        self.scrollarea.resize(300,300)
+        self.lay.addWidget(pybutton)
+        self.lay.addStretch(1)
 
-        self.vbox = QVBoxLayout()
-        self.widget = QWidget()
-
-        self.widget.setLayout(self.vbox)
-
-    def Action(self):
-        for i in range(12):
-            self.label = QLabel(self)
-            self.label.resize(300, 300)
-
-            pixmap = QPixmap(f'{ImagePath}Image{i}.jpg')
-            pixmapFixed = pixmap.scaled(300,300, QtCore.Qt.KeepAspectRatio)
-            self.label.setPixmap(pixmapFixed)
-
-            self.vbox.addWidget(self.label)
-        
-        self.widget.setLayout(self.vbox)
-        self.scrollarea.setWidget(self.widget)
-        self.show()
+    def clickMethod(self):
+        newBtn = QPushButton('New Button{}'.format(self.numButton), self)
+        self.numButton += 1
+        newBtn.clicked.connect(lambda : print("\nclicked===>> {}".format(newBtn.text())))
+        self.lay.addWidget(newBtn)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    window = MainWindow()
-    window.show()
-    app.exec_()
+    mainWin = MainWindow(3)                                            # 3 --> x
+    mainWin.show()
+    sys.exit( app.exec_() )

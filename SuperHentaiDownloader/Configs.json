@@ -1,5 +1,11 @@
 {
-    "RichPresence": [],
-    "Notification": [],
-    "ImageViewer": []
+    "RichPresence": [
+        "False"
+    ],
+    "Notification": [
+        "True"
+    ],
+    "ImageViewer": [
+        "False"
+    ]
 }

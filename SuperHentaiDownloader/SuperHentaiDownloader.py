@@ -1,26 +1,31 @@
-from json.decoder import JSONDecodeError, JSONDecoder
-from json.encoder import JSONEncoder
-import sys
-import traceback
-from PyQt5 import QtCore
-from PyQt5.QtWidgets import QAction, QMainWindow, QLabel, QTextEdit, QPushButton, QApplication, qApp
-from PyQt5 import QtGui
-from PyQt5.QtCore import QObject, QRunnable, QThreadPool, pyqtSignal, pyqtSlot
-import random
-import time
-from loguru import logger
-import requests
-import discord_rpc
-import os
-from notifypy import Notify
 import json
+import os
+import random
+import sys
+import time
+import traceback
+
+import discord_rpc
+import requests
+from loguru import logger
+from notifypy import Notify
+from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtCore import QObject, QRunnable, QThreadPool, pyqtSignal, pyqtSlot
+from PyQt5.QtWidgets import (QAction, QApplication, QLabel, QLineEdit,
+                             QMainWindow, QMessageBox, QPushButton,
+                             QScrollArea, QVBoxLayout, QWidget, qApp)
+import io
+from PIL import Image, ImageCms
 
 icon = "Sources/icon.png"
 
 default = 'style.css'
-imageDir = "Hentai-Image/"
-gifDir = "Hentai-Gif/"
 
+ImagePath = "Hentai-Image/"
+GifPath = "Hentai-Gif/"
+FavPath = "Favoritos/"
+
+AppTitle = "Super Hentais - Downloader"
 width = 800
 height = 600
 
@@ -36,14 +41,17 @@ Configs['Notification'] = []
 Configs['ImageViewer'] = []
 
 try:
-    os.mkdir(imageDir)
-    os.mkdir(gifDir)
+    os.mkdir(ImagePath)
+    os.mkdir(GifPath)
+    os.mkdir(FavPath)
 except OSError:
-    print ("Pasta %s Já existe" % imageDir)
-    print ("Pasta %s Já existe" % gifDir)
+    print ("Pasta %s Já existe" % ImagePath)
+    print ("Pasta %s Já existe" % GifPath)
+    print ("Pasta %s Já existe" % FavPath)
 else:
-    print ("Sucesso na criação da pasta %s " % imageDir)
-    print ("Sucesso na criação da pasta %s " % gifDir)
+    print ("Sucesso na criação da pasta %s " % ImagePath)
+    print ("Sucesso na criação da pasta %s " % GifPath)
+    print ("Sucesso na criação da pasta %s " % FavPath)
 
 def readyCallback(current_user):
     print('Seu usuario: {}'.format(current_user))
@@ -104,38 +112,72 @@ class Janela(QMainWindow):
     def __init__(self):
         super(Janela, self).__init__()
 
-        self.setWindowTitle("Super Hentai Downloader")
+        self.setWindowTitle(AppTitle)
+        self.setGeometry(0,0,width,height)
         self.setWindowIcon(QtGui.QIcon(icon))
 
-        self.hentaiv = QLabel(self)
-        self.hentaiv.move(150,70)
-        self.hentaiv.resize(600,400)
-
         logo = QtGui.QPixmap("Sources/imageSize.webp")
-        self.label = QLabel(self)
-        self.label.setPixmap(logo)
-        self.label.move(270,40)
-        self.label.resize(157,31)
 
-        self.setGeometry(0,0,width,height)
+        #TAB
+        self.tabWidget = QtWidgets.QTabWidget()
+        self.setCentralWidget(self.tabWidget)
 
-        self.line1 = QLabel("Quantidade:", self)
-        self.line1.move(240,495)
+        self.Downloader = QtWidgets.QWidget()
+        self.tabWidget.addTab(self.Downloader, "Downloader")
 
-        self.textbox = QTextEdit(self)
+        self.galeria = QtWidgets.QWidget()
+        self.tabWidget.addTab(self.galeria, "Galeria")
+        ###
+        ##
+        #
+        #
+        ##
+        #TAB1
+        self.Logo = QLabel(self.Downloader)
+        self.Logo.setPixmap(logo)
+        self.Logo.move(270,40)
+        self.Logo.resize(157,31)
+
+        self.hentaiv = QLabel(self.Downloader)
+        self.hentaiv.move(160, 80)
+        self.hentaiv.resize(400,400)
+
+        self.line1 = QLabel("Quantidade:", self.Downloader)
+        self.line1.move(230,505)
+        
+        self.textbox = QLineEdit(self.Downloader)
         self.textbox.move(300,500)
-        self.textbox.resize(100,25)
 
         #labelINFO
-        self.baixados = QLabel("Imagens Baixada: ", self)
+        self.baixados = QLabel("Imagens Baixada: ", self.Downloader)
         self.baixados.move(50,510)
         self.baixados.resize(150,20)
 
-        self.accept = QPushButton("Baixar", self)
+        self.accept = QPushButton("Baixar", self.Downloader)
         self.accept.move(300,530)
         self.accept.clicked.connect(self.iniciar)
+        ###
+        ##
+        #
+        #
+        ##
+        #Galeria
+        self.GaleriaScroll = QScrollArea(self.galeria)
+        self.GaleriaScroll.move(0,0)
+        self.GaleriaScroll.resize(800,555)
+
+        self.vbox = QVBoxLayout(self.galeria)
+
+        self.widget = QWidget(self.galeria)
+        self.widget.setLayout(self.vbox)
+
+        ###
+        ##
+        #
 
         # >>Style<<
+
+        self.Downloader.setStyleSheet(open(default).read())
         self.accept.setStyleSheet(open(default).read())
         self.textbox.setStyleSheet(open(default).read())
         self.line1.setStyleSheet(open(default).read())
@@ -143,11 +185,46 @@ class Janela(QMainWindow):
 
         self.show()
         self.showUI()
+        aviso =  QMessageBox.information(self, AppTitle,"Por causa da Galeria o aplicativo pode demorar um pouco para iniciar " +
+                            "Mas Você pode desativar o carregamento da galeria em configurações, E poder ativar " +
+                            "ela novamente quando entrar Na galeria",QMessageBox.Ok)
+        self.LoadGallery()
 
         self.threadpool = QThreadPool()
         #print("Multithreading with maximum %d threads" % self.threadpool.maxThreadCount())
+
     
     #!@ Funções @!
+    def LoadGallery(self):
+        self.imagensGaleria = os.listdir(ImagePath)
+
+        ImageQuantidade = len(self.imagensGaleria)
+        for i in range(ImageQuantidade):
+
+            self.ImageDeleteButton = QPushButton(f"Deletar {self.imagensGaleria[i]}",self.galeria)
+            ImageName = self.ImageDeleteButton.text().replace("Deletar ", "")
+            self.ImageDeleteButton.clicked.connect(lambda ch, ImageName=ImageName: os.remove(f"{ImagePath}"+ImageName))
+
+            self.ImageFavorite = QPushButton(f"Favoritar",self.galeria)
+            self.ImageFavorite.clicked.connect(lambda ch, ImageName=ImageName: os.replace(f"{ImagePath}{ImageName}", f"{FavPath}{ImageName}"))
+
+            ImageGalleryShow = QLabel(self.galeria)
+
+            ImageGallery = QtGui.QPixmap(f'{ImagePath}{self.imagensGaleria[i]}')
+            ImageGalleryFixed = ImageGallery.scaled(400,400, QtCore.Qt.KeepAspectRatio)
+            ImageGalleryShow.setPixmap(ImageGalleryFixed)
+
+
+            self.ImageDeleteButton.clicked.connect(lambda ch, ImageGalleryShow=ImageGalleryShow:ImageGalleryShow.setText("Deleted 👍"))
+            self.ImageDeleteButton.clicked.connect(lambda ch, ImageGalleryShow=ImageGalleryShow:ImageGalleryShow.resize(10,50))
+
+            self.vbox.addWidget(self.ImageDeleteButton)
+            self.vbox.addWidget(self.ImageFavorite)
+            self.vbox.addWidget(ImageGalleryShow)
+        
+        self.widget.setLayout(self.vbox)
+        self.GaleriaScroll.setWidget(self.widget)
+
 
     def showUI(self):
         menubar = self.menuBar()
@@ -257,7 +334,7 @@ class Janela(QMainWindow):
         print("%d%% done" % i)
         
     def baixar(self, progress_callback):
-        self.getTextString = self.textbox.toPlainText()
+        self.getTextString = self.textbox.text()
         self.getTextValue = int(self.getTextString)
 
         #Notificação de aviso
@@ -315,13 +392,17 @@ class Janela(QMainWindow):
             print(verifyJPEG)
             if verifyJPEG == "image/jpeg":
                 ImageJPEGname = "Super-Hentai-Image-{}{}".format(IDran, formatJPEG)
-                file = open(f"{imageDir}{ImageJPEGname}", "wb")
+                file = open(f"{ImagePath}{ImageJPEGname}", "wb")
                 file.write(URLdirJPEG.content)
                 file.close()
 
+                imgQuality = Image.open(f"{ImagePath}{ImageJPEGname}")
+                imgQuality.save(f"{ImagePath}{ImageJPEGname}", quality=100)
+
                 #Preview Image
                 if self.imagePreview.isChecked() == False:
-                    self.HentaiView = QtGui.QPixmap(f"{imageDir}{ImageJPEGname}")
+
+                    self.HentaiView = QtGui.QPixmap(f"{ImagePath}{ImageJPEGname}")
                     scaledpreiew = self.HentaiView.scaled(400,400, QtCore.Qt.KeepAspectRatio)
                     self.hentaiv.setPixmap(scaledpreiew)
 
@@ -329,30 +410,33 @@ class Janela(QMainWindow):
             print(verifyPNG)
             if verifyPNG == "image/png":
                 ImagePNGname = "Super-Hentai-Image-{}{}".format(IDran, formatPNG)
-                file = open(f"{imageDir}{ImagePNGname}", "wb")
+                file = open(f"{ImagePath}{ImagePNGname}", "wb")
                 file.write(URLdirPNG.content)
                 file.close()
 
                 #Preview Image
                 if self.imagePreview.isChecked() == False:
-                    self.HentaiView = QtGui.QPixmap(f"{imageDir}{ImagePNGname}")
+
+                    self.HentaiView = QtGui.QPixmap(f"{ImagePath}{ImagePNGname}")
                     scaledpreiew = self.HentaiView.scaled(400,400, QtCore.Qt.KeepAspectRatio)
                     self.hentaiv.setPixmap(scaledpreiew)
-            
+
             #Verificar se é gif
             print(verifyGIF)
             if verifyGIF == "image/gif":
                 ImageGIFname = "Super-Hentai-Image-{}{}".format(IDran, formatGIF)
-                file = open(f"{gifDir}{ImageGIFname}", "wb")
+                file = open(f"{GifPath}{ImageGIFname}", "wb")
                 file.write(URLdirGIF.content)
                 file.close()
                 
                 #Preview Image
                 if self.imagePreview.isChecked() == False:
-                    self.HentaiView = QtGui.QPixmap(f"{gifDir}{ImageGIFname}")
+
+                    self.HentaiView = QtGui.QPixmap(f"{GifPath}{ImageGIFname}")
                     scaledpreiew = self.HentaiView.scaled(400,400, QtCore.Qt.KeepAspectRatio)
                     self.hentaiv.setPixmap(scaledpreiew)
-
+            
+            self.setWindowTitle("Super Hentais - Baixando: {}".format(IDran))
             print("=-"*40)
             
         #Notificação de downloa completo
@@ -373,14 +457,34 @@ class Janela(QMainWindow):
         worker = Worker(self.baixar)
 
         worker.signals.finished.connect(self.completo)
+
         worker.signals.progress.connect(self.pregresso)
 
         self.threadpool.start(worker)
 
 # cor da janela em (CSS)
-df = """
+StyleDefault = """
     Janela {
         background-color: black;
+    }
+    QLineEdit {
+        background: rgba(255, 0, 0, 1.271);
+        color: red;
+        border: 1px solid red;
+    }
+    QTabWidget::pane {
+        border: 1px solid darkgray;
+        top:-1px;
+        background: black;
+    } 
+    QTabBar::tab {
+        background: gray; 
+        border: 1px solid gray;
+        padding: 5px;
+    } 
+    QTabBar::tab:selected { 
+        background: white; 
+        margin-bottom: -1px; 
     }
 """
 
@@ -389,7 +493,7 @@ if __name__ == "__main__":
     janela = Janela()
     janela.show()
     
-    app.setStyleSheet(df)
+    app.setStyleSheet(StyleDefault)
 
     discord_rpc.shutdown()
     sys.exit(app.exec_())
