@@ -9,21 +9,23 @@ import discord_rpc
 import requests
 from loguru import logger
 from notifypy import Notify
+from PIL import Image
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import QObject, QRunnable, QThreadPool, pyqtSignal, pyqtSlot
 from PyQt5.QtWidgets import (QAction, QApplication, QLabel, QLineEdit,
-                             QMainWindow, QMessageBox, QPushButton,
-                             QScrollArea, QVBoxLayout, QWidget, qApp)
-import io
-from PIL import Image, ImageCms
+                             QMainWindow, QPushButton,
+                             QScrollArea, QShortcut, QVBoxLayout, QWidget, qApp)
 
-icon = "Sources/icon.png"
+sources = "Sources/"
+
+icon = f"{sources}icon.png"
 
 default = 'style.css'
 
 ImagePath = "Hentai-Image/"
 GifPath = "Hentai-Gif/"
 FavPath = "Favoritos/"
+
 
 AppTitle = "Super Hentais - Downloader"
 width = 800
@@ -33,7 +35,7 @@ formatJPEG = ".jpeg"
 formatPNG = ".png"
 formatGIF = ".gif"
 
-completenotificationAudio = "Sources\CompleteNotificationAudio.wav"
+completenotificationAudio = f"{sources}CompleteNotificationAudio.wav"
 
 Configs = {}
 Configs['RichPresence'] = []
@@ -116,7 +118,7 @@ class Janela(QMainWindow):
         self.setGeometry(0,0,width,height)
         self.setWindowIcon(QtGui.QIcon(icon))
 
-        logo = QtGui.QPixmap("Sources/imageSize.webp")
+        logo = QtGui.QPixmap(f"{sources}imageSize.webp")
 
         #TAB
         self.tabWidget = QtWidgets.QTabWidget()
@@ -166,17 +168,18 @@ class Janela(QMainWindow):
         self.GaleriaScroll.move(0,0)
         self.GaleriaScroll.resize(800,555)
 
-        self.vbox = QVBoxLayout(self.galeria)
+        self.GaleriaScroll.setStyleSheet("""
+                                         background: black;
+                                         border: 1px solid red;
+                                         color: red;""")
+        
 
-        self.widget = QWidget(self.galeria)
-        self.widget.setLayout(self.vbox)
-
-        ###
-        ##
-        #
+        self.reloadGallery = QPushButton("Recarregar Galeria", self.galeria)
+        self.reloadGallery.clicked.connect(self.LoadGallery)
+        self.reloadGallery.setIcon(QtGui.QIcon(f"{sources}reload.png"))
+        self.reloadGallery.move(570,0)
 
         # >>Style<<
-
         self.Downloader.setStyleSheet(open(default).read())
         self.accept.setStyleSheet(open(default).read())
         self.textbox.setStyleSheet(open(default).read())
@@ -185,47 +188,12 @@ class Janela(QMainWindow):
 
         self.show()
         self.showUI()
-        aviso =  QMessageBox.information(self, AppTitle,"Por causa da Galeria o aplicativo pode demorar um pouco para iniciar " +
-                            "Mas Você pode desativar o carregamento da galeria em configurações, E poder ativar " +
-                            "ela novamente quando entrar Na galeria",QMessageBox.Ok)
         self.LoadGallery()
 
         self.threadpool = QThreadPool()
         #print("Multithreading with maximum %d threads" % self.threadpool.maxThreadCount())
 
-    
     #!@ Funções @!
-    def LoadGallery(self):
-        self.imagensGaleria = os.listdir(ImagePath)
-
-        ImageQuantidade = len(self.imagensGaleria)
-        for i in range(ImageQuantidade):
-
-            self.ImageDeleteButton = QPushButton(f"Deletar {self.imagensGaleria[i]}",self.galeria)
-            ImageName = self.ImageDeleteButton.text().replace("Deletar ", "")
-            self.ImageDeleteButton.clicked.connect(lambda ch, ImageName=ImageName: os.remove(f"{ImagePath}"+ImageName))
-
-            self.ImageFavorite = QPushButton(f"Favoritar",self.galeria)
-            self.ImageFavorite.clicked.connect(lambda ch, ImageName=ImageName: os.replace(f"{ImagePath}{ImageName}", f"{FavPath}{ImageName}"))
-
-            ImageGalleryShow = QLabel(self.galeria)
-
-            ImageGallery = QtGui.QPixmap(f'{ImagePath}{self.imagensGaleria[i]}')
-            ImageGalleryFixed = ImageGallery.scaled(400,400, QtCore.Qt.KeepAspectRatio)
-            ImageGalleryShow.setPixmap(ImageGalleryFixed)
-
-
-            self.ImageDeleteButton.clicked.connect(lambda ch, ImageGalleryShow=ImageGalleryShow:ImageGalleryShow.setText("Deleted 👍"))
-            self.ImageDeleteButton.clicked.connect(lambda ch, ImageGalleryShow=ImageGalleryShow:ImageGalleryShow.resize(10,50))
-
-            self.vbox.addWidget(self.ImageDeleteButton)
-            self.vbox.addWidget(self.ImageFavorite)
-            self.vbox.addWidget(ImageGalleryShow)
-        
-        self.widget.setLayout(self.vbox)
-        self.GaleriaScroll.setWidget(self.widget)
-
-
     def showUI(self):
         menubar = self.menuBar()
 
@@ -280,6 +248,60 @@ class Janela(QMainWindow):
             print("Arquivo de Configurações criado")
             print("-="*40)
 
+    def LoadGallery(self):
+        imagensGaleria = os.listdir(ImagePath)
+        ImageQuantidade = len(imagensGaleria)
+
+        self.vbox = QVBoxLayout(self.galeria)
+        self.widget = QWidget(self.galeria)
+        self.widget.setLayout(self.vbox)
+
+        quantiImage = QLabel(f"Imagens: {ImageQuantidade}", self.galeria)
+        quantiImage.move(575,25)
+        quantiImage.setStyleSheet("""color: red;""")
+        print(ImageQuantidade)
+
+        for i in range(ImageQuantidade):
+            quantiImage.setText(f"Imagens: {ImageQuantidade}")
+
+            ImageDeleteButton = QPushButton(f"Deletar {imagensGaleria[i]}",self.galeria)
+            ImageName = ImageDeleteButton.text().replace("Deletar ", "")
+
+            ImageFavorite = QPushButton(f"Favoritar",self.galeria)
+
+            ImageGalleryShow = QLabel(self.galeria)
+
+            ImageGallery = QtGui.QPixmap(f'{ImagePath}{imagensGaleria[i]}')
+            ImageGalleryFixed = ImageGallery.scaled(550,550, QtCore.Qt.KeepAspectRatio)
+            ImageGalleryShow.setPixmap(ImageGalleryFixed)
+            
+
+            ImageDeleteButton.clicked.connect(lambda ch, ImageName=ImageName: os.remove(f"{ImagePath}"+ImageName))
+            ImageDeleteButton.clicked.connect(lambda ch, ImageGalleryShow=ImageGalleryShow: ImageGalleryShow.setHidden(True))
+            ImageDeleteButton.clicked.connect(lambda ch, HiddeButtonDelete=ImageDeleteButton: HiddeButtonDelete.setHidden(True))
+            ImageDeleteButton.clicked.connect(lambda ch, HiddeButtonFav=ImageFavorite: HiddeButtonFav.setHidden(True))
+
+            
+            ImageFavorite.clicked.connect(lambda ch, ImageName=ImageName: os.replace(f"{ImagePath}{ImageName}", f"{FavPath}{ImageName}"))
+            ImageFavorite.clicked.connect(lambda ch, Favoritado=ImageFavorite: Favoritado.setText("Favoritado 👍"))
+
+
+            ImageDeleteButton.setStyleSheet("""
+                                                 background-color: white;
+                                                 """)
+            ImageFavorite.setStyleSheet("""
+                                             background-color: white;
+                                             """)
+
+            self.vbox.addWidget(ImageDeleteButton)
+            self.vbox.addWidget(ImageFavorite)
+            self.vbox.addWidget(ImageGalleryShow)
+            
+        
+        self.widget.setLayout(self.vbox)
+        self.GaleriaScroll.setWidget(self.widget)
+
+    
     def carregarConfigs(self):
         print("-="*40)
         print("Carregando Configurações..")
