@@ -14,7 +14,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import QObject, QRunnable, QThreadPool, pyqtSignal, pyqtSlot
 from PyQt5.QtWidgets import (QAction, QApplication, QLabel, QLineEdit,
                              QMainWindow, QPushButton,
-                             QScrollArea, QShortcut, QVBoxLayout, QWidget, qApp)
+                             QScrollArea, QVBoxLayout, QWidget, qApp)
 
 sources = "Sources/"
 
@@ -26,8 +26,8 @@ ImagePath = "Hentai-Image/"
 GifPath = "Hentai-Gif/"
 FavPath = "Favoritos/"
 
+AppName = "Super Hentais - Downloader"
 
-AppTitle = "Super Hentais - Downloader"
 width = 800
 height = 600
 
@@ -114,7 +114,7 @@ class Janela(QMainWindow):
     def __init__(self):
         super(Janela, self).__init__()
 
-        self.setWindowTitle(AppTitle)
+        self.setWindowTitle(AppName)
         self.setGeometry(0,0,width,height)
         self.setWindowIcon(QtGui.QIcon(icon))
 
@@ -172,7 +172,6 @@ class Janela(QMainWindow):
                                          background: black;
                                          border: 1px solid red;
                                          color: red;""")
-        
 
         self.reloadGallery = QPushButton("Recarregar Galeria", self.galeria)
         self.reloadGallery.clicked.connect(self.LoadGallery)
@@ -290,7 +289,7 @@ class Janela(QMainWindow):
                                                  background-color: white;
                                                  """)
             ImageFavorite.setStyleSheet("""
-                                             background-color: white;
+                                             background-color: white;                                     
                                              """)
 
             self.vbox.addWidget(ImageDeleteButton)
@@ -458,7 +457,7 @@ class Janela(QMainWindow):
                     scaledpreiew = self.HentaiView.scaled(400,400, QtCore.Qt.KeepAspectRatio)
                     self.hentaiv.setPixmap(scaledpreiew)
             
-            self.setWindowTitle("Super Hentais - Baixando: {}".format(IDran))
+            self.setWindowTitle("{}: {}".format(AppName,IDran))
             print("=-"*40)
             
         #Notificação de downloa completo
