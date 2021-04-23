@@ -186,8 +186,9 @@ class Janela(QMainWindow):
         self.baixados.setStyleSheet(open(default).read())
 
         self.show()
-        self.showUI()
         self.LoadGallery()
+        self.showUI()
+        
 
         self.threadpool = QThreadPool()
         #print("Multithreading with maximum %d threads" % self.threadpool.maxThreadCount())
@@ -259,10 +260,10 @@ class Janela(QMainWindow):
         quantiImage.move(575,25)
         quantiImage.setStyleSheet("""color: red;""")
         print(ImageQuantidade)
+        quantiImage.setText(f"Imagens: {ImageQuantidade}")
 
         for i in range(ImageQuantidade):
-            quantiImage.setText(f"Imagens: {ImageQuantidade}")
-
+            
             ImageDeleteButton = QPushButton(f"Deletar {imagensGaleria[i]}",self.galeria)
             ImageName = ImageDeleteButton.text().replace("Deletar ", "")
 
