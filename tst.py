@@ -1,5 +1,8 @@
-boloen = True
+import random
 
-if boloen == True:
-    boloen = boloen == False
-    print(boloen)
+lista = ["osu","programar"]
+
+escolha = random.choice(lista)
+
+print(escolha)
+input("")

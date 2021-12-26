@@ -274,7 +274,6 @@ class Janela(QMainWindow):
             ImageGallery = QtGui.QPixmap(f'{ImagePath}{imagensGaleria[i]}')
             ImageGalleryFixed = ImageGallery.scaled(550,550, QtCore.Qt.KeepAspectRatio)
             ImageGalleryShow.setPixmap(ImageGalleryFixed)
-            
 
             ImageDeleteButton.clicked.connect(lambda ch, ImageName=ImageName: os.remove(f"{ImagePath}"+ImageName))
             ImageDeleteButton.clicked.connect(lambda ch, ImageGalleryShow=ImageGalleryShow: ImageGalleryShow.setHidden(True))
@@ -374,7 +373,7 @@ class Janela(QMainWindow):
             #progress_callback.emit(i*100/getTextValue)
 
             IDran = random.randrange(1, 111767)
-            link = "ID: {}".format(IDran)
+            link = "{}".format(IDran)
 
             self.baixados.setText("Imagens Baixadas: %d" % i)
 
@@ -413,6 +412,7 @@ class Janela(QMainWindow):
             #Se a imagem for JPEG
             print(verifyJPEG)
             if verifyJPEG == "image/jpeg":
+                print(linkJPEG)
                 ImageJPEGname = "Super-Hentai-Image-{}{}".format(IDran, formatJPEG)
                 file = open(f"{ImagePath}{ImageJPEGname}", "wb")
                 file.write(URLdirJPEG.content)
@@ -431,6 +431,7 @@ class Janela(QMainWindow):
             #Se a imagem for PNG
             print(verifyPNG)
             if verifyPNG == "image/png":
+                print(linkPNG)
                 ImagePNGname = "Super-Hentai-Image-{}{}".format(IDran, formatPNG)
                 file = open(f"{ImagePath}{ImagePNGname}", "wb")
                 file.write(URLdirPNG.content)
@@ -446,6 +447,7 @@ class Janela(QMainWindow):
             #Verificar se é gif
             print(verifyGIF)
             if verifyGIF == "image/gif":
+                print(linkGIF)
                 ImageGIFname = "Super-Hentai-Image-{}{}".format(IDran, formatGIF)
                 file = open(f"{GifPath}{ImageGIFname}", "wb")
                 file.write(URLdirGIF.content)

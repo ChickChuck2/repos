@@ -12,3 +12,6 @@ forecastday = result["forecast"]
 day = forecastday[0]
 
 print(day["weekday"])
+
+while True:
+    deff = True

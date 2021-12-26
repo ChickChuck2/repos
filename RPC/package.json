@@ -1,0 +1,16 @@
+{
+  "name": "richpresence",
+  "version": "1.0.0",
+  "description": "Richpresence  Creator",
+  "main": "RichPresence.js",
+  "scripts": {
+    "start": "node RichPresence.js",
+    "build": "nexe RichPresence.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "RichPresence"
+  },
+  "author": "ChickChuck2",
+  "license": "UNLICENSED"
+}
