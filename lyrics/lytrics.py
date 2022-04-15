@@ -1,6 +1,7 @@
 import lyricsgenius
 import pyautogui
 import time
+import pyperclip
 
 genius = lyricsgenius.Genius("sIEUYbTfkwI59C3dQMfPx7Zwo_9u_oOdmvw3VJzPIm54HbCOtFxq6ONIohDUsJnn")
 
@@ -16,6 +17,7 @@ fraseSplit = letra.split("\n")
 contar = len(fraseSplit)
 
 for i in range(contar):
+    pyperclip.copy(fraseSplit[i])
     time.sleep(1)
-    pyautogui.write(fraseSplit[i])
+    pyautogui.hotkey("ctrl", "v")
     pyautogui.keyDown('enter')

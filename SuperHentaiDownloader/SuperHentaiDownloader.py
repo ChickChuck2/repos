@@ -8,7 +8,7 @@ import traceback
 import discord_rpc
 import requests
 from loguru import logger
-from notifypy import Notify
+from notifypy import notify
 from PIL import Image
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import QObject, QRunnable, QThreadPool, pyqtSignal, pyqtSlot
